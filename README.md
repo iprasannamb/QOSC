@@ -1,6 +1,5 @@
-# Quantum Open Source Collaboration Platform (QOSC)
-
-A collaborative platform for developing, sharing, and improving quantum algorithms and software.
+# Xrepo
+A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
 
 ## Features
 
