@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -91,10 +92,24 @@ export default function QuantumFourierTransform() {
             <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
           </svg>
           Back to Repository
+=======
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function QuantumFourierTransform() {
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black text-white p-8">
+      <nav className="mb-8">
+        <Link href="/repository" className="text-blue-400 hover:underline">
+          ← Back to Repository
+>>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
         </Link>
       </nav>
 
       <div className="max-w-4xl mx-auto">
+<<<<<<< HEAD
         <h1 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
           Quantum Fourier Transform (QFT)
         </h1>
@@ -115,11 +130,30 @@ export default function QuantumFourierTransform() {
             </MathJaxContext>
             <p className="text-gray-300 mt-4">
               Where N = 2<sup>n</sup> for n qubits, and j ranges from 0 to N-1.
+=======
+        <h1 className="text-4xl font-bold mb-6">Quantum Fourier Transform (QFT)</h1>
+        
+        {/* Mathematical Description */}
+        <Card className="bg-gray-800/50 p-6 mb-8">
+          <CardContent>
+            <h2 className="text-2xl font-semibold mb-4">Mathematical Description</h2>
+            <p className="text-gray-300 mb-4">
+              The Quantum Fourier Transform is defined as:
+            </p>
+            <div className="bg-black/30 p-4 rounded-lg overflow-x-auto">
+              <code className="text-green-400">
+                {`|j⟩ ↦ \\frac{1}{\\sqrt{N}} \\sum_{k=0}^{N-1} e^{2\\pi ijk/N} |k⟩`}
+              </code>
+            </div>
+            <p className="text-gray-300 mt-4">
+              Where N = 2^n for n qubits, and j ranges from 0 to N-1.
+>>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
             </p>
           </CardContent>
         </Card>
 
         {/* Circuit Implementation */}
+<<<<<<< HEAD
         <Card className="bg-gray-800/50 backdrop-blur-sm p-6 mb-8 border border-gray-700">
           <CardContent>
             <h2 className="text-2xl font-semibold mb-4 text-blue-300">Circuit Implementation</h2>
@@ -139,10 +173,35 @@ export default function QuantumFourierTransform() {
               <li>Hadamard gates (H)</li>
               <li>Controlled phase rotations (R<sub>k</sub>)</li>
               <li>SWAP gates for bit reversal</li>
+=======
+        <Card className="bg-gray-800/50 p-6 mb-8">
+          <CardContent>
+            <h2 className="text-2xl font-semibold mb-4">Circuit Implementation</h2>
+            <div className="bg-black/30 p-4 rounded-lg mb-4">
+              {/* Add circuit diagram here */}
+              <p className="text-gray-300">Circuit diagram visualization</p>
+            </div>
+            <p className="text-gray-300">
+              The QFT circuit consists of Hadamard gates and controlled phase rotations.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Applications */}
+        <Card className="bg-gray-800/50 p-6 mb-8">
+          <CardContent>
+            <h2 className="text-2xl font-semibold mb-4">Applications</h2>
+            <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <li>Phase estimation</li>
+              <li>Shor's algorithm</li>
+              <li>Quantum signal processing</li>
+              <li>Quantum machine learning</li>
+>>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
             </ul>
           </CardContent>
         </Card>
 
+<<<<<<< HEAD
         {/* Interactive Visualization */}
         <Card className="bg-gray-800/50 backdrop-blur-sm p-6 mb-8 border border-gray-700">
           <CardContent>
@@ -200,12 +259,21 @@ export default function QuantumFourierTransform() {
               </div>
               <pre className="bg-black/30 p-4 rounded-lg overflow-x-auto">
                 <code className="text-green-400">
+=======
+        {/* Code Example */}
+        <Card className="bg-gray-800/50 p-6">
+          <CardContent>
+            <h2 className="text-2xl font-semibold mb-4">Code Example</h2>
+            <pre className="bg-black/30 p-4 rounded-lg overflow-x-auto">
+              <code className="text-green-400">
+>>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
 {`# Qiskit implementation of QFT
 def qft(circuit, n):
     """Apply QFT to n qubits."""
     for j in range(n):
         for k in range(j):
             circuit.cp(pi/float(2**(j-k)), k, j)
+<<<<<<< HEAD
         circuit.h(j)
     
     # Apply swaps at the end
@@ -214,6 +282,11 @@ def qft(circuit, n):
                 </code>
               </pre>
             </div>
+=======
+        circuit.h(j)`}
+              </code>
+            </pre>
+>>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
           </CardContent>
         </Card>
       </div>
