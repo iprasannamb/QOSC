@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navigation from '../components/Navigation';
 import Sidebar from '../components/Sidebar';
+import { toast } from 'react-hot-toast';
 
 interface UserProfile {
   name: string;
@@ -16,6 +17,7 @@ export default function Profile() {
   const router = useRouter();
   const [fadeIn, setFadeIn] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     name: 'John Doe',
     email: 'john@example.com',
@@ -26,6 +28,12 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    // Load saved profile from localStorage if it exists
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    }
+    
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
@@ -42,6 +50,38 @@ export default function Profile() {
 
   const handleToggleChange = (name: string) => {
     setProfile(prev => ({ ...prev, [name]: !prev[name as keyof UserProfile] }));
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(profile.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+
+      // Validate name length
+      if (profile.name.trim().length < 2) {
+        toast.error('Name must be at least 2 characters long');
+        return;
+      }
+
+      // Simulate API call with timeout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Save to localStorage
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      toast.error('Failed to update profile. Please try again.');
+      console.error('Error saving profile:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -65,7 +105,7 @@ export default function Profile() {
                   name="name"
                   value={profile.name}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2"
+                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -75,7 +115,7 @@ export default function Profile() {
                   name="email"
                   value={profile.email}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2"
+                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -84,7 +124,7 @@ export default function Profile() {
                   name="bio"
                   value={profile.bio}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 h-24"
+                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 h-24 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -129,15 +169,24 @@ export default function Profile() {
           {/* Save and Logout Buttons */}
           <div className="space-y-4">
             <button
-              onClick={() => console.log('Saving profile...', profile)}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              onClick={handleSaveProfile}
+              disabled={isSaving}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:bg-purple-400 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              Save Changes
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </button>
             
             <button
               onClick={() => {
                 localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userProfile');
                 router.push('/login');
               }}
               className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"

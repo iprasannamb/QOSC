@@ -3,6 +3,45 @@ import { QuantumSimulator } from '../lib/quantum/simulator';
 import { QuantumGates, ControlledGates, GateType, ControlledGateType } from '../lib/quantum/gates';
 import { QuantumCircuit, Operation } from '../components/QuantumCircuit';
 import { toast } from 'react-hot-toast';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+  ChartData
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+// Add new function to convert circuit to QASM format
+const circuitToQASM = (operations: Operation[], numQubits: number): string => {
+  let qasmCode = 'OPENQASM 2.0;\ninclude "qelib1.inc";\n\n';
+  qasmCode += `qreg q[${numQubits}];\n`;
+  qasmCode += `creg c[${numQubits}];\n\n`;
+
+  operations.forEach(op => {
+    if (op.control !== undefined) {
+      qasmCode += `c${op.gate.toLowerCase()} q[${op.control}], q[${op.target}];\n`;
+    } else {
+      qasmCode += `${op.gate.toLowerCase()} q[${op.target}];\n`;
+    }
+  });
+
+  return qasmCode;
+};
 
 export default function QuantumPlayground() {
   // State management
@@ -100,11 +139,21 @@ export default function QuantumPlayground() {
 
     try {
       const { result, probability } = simulator.measure(qubit);
-      setResults(prev => ({
-        ...prev,
-        [qubit]: result
-      }));
-      toast.success(`Measurement result: |${result}⟩ with probability ${(probability * 100).toFixed(2)}%`);
+      
+      // Update both the measurement results and probabilities
+      const probabilities = simulator.getProbabilities();
+      setResults(Object.fromEntries(
+        probabilities.map((prob, i) => [i, prob])
+      ));
+
+      // Show a more detailed toast message
+      toast.success(
+        <div>
+          <div>Qubit {qubit} measured to |{result}⟩</div>
+          <div className="text-sm">Probability: {(probability * 100).toFixed(2)}%</div>
+        </div>,
+        { duration: 3000 }
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to measure qubit';
       setError(message);
@@ -130,6 +179,94 @@ export default function QuantumPlayground() {
     setError(null);
     toast.success('Circuit reset');
   }, [numQubits]);
+
+  // Replace the ProbabilityHistogram component with this typed version
+  const ProbabilityHistogram = ({ probabilities }: { probabilities: { [key: number]: number } }) => {
+    const options: ChartOptions<'bar'> = {
+      responsive: true,
+      animation: {
+        duration: 500
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1,
+          ticks: {
+            callback: function(value) {
+              return `${(Number(value) * 100).toFixed(0)}%`;
+            },
+            color: 'white'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        },
+        x: {
+          ticks: {
+            color: 'white'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Probability: ${(context.parsed.y * 100).toFixed(2)}%`;
+            }
+          }
+        }
+      }
+    };
+
+    const data: ChartData<'bar'> = {
+      labels: Object.keys(probabilities).map(state => `|${state}⟩`),
+      datasets: [
+        {
+          data: Object.values(probabilities),
+          backgroundColor: 'rgba(53, 162, 235, 0.8)',
+          borderColor: 'rgba(53, 162, 235, 1)',
+          borderWidth: 1,
+          borderRadius: 5,
+          hoverBackgroundColor: 'rgba(53, 162, 235, 1)',
+        }
+      ]
+    };
+
+    return (
+      <div className="mt-8">
+        <h3 className="text-xl mb-4">Histogram of Probabilities</h3>
+        <div className="bg-gray-900 p-4 rounded-lg">
+          <Bar options={options} data={data} height={200} />
+        </div>
+      </div>
+    );
+  };
+
+  // Add function to handle QASM export
+  const handleExport = useCallback(() => {
+    try {
+      const qasmCode = circuitToQASM(operations, numQubits);
+      const blob = new Blob([qasmCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'quantum_circuit.qasm';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Circuit exported successfully');
+    } catch (err) {
+      toast.error('Failed to export circuit');
+      console.error(err);
+    }
+  }, [operations, numQubits]);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black text-white p-8">
@@ -265,30 +402,57 @@ export default function QuantumPlayground() {
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: numQubits }).map((_, i) => (
                 <div key={i} className="bg-gray-700 p-4 rounded">
-                  <div className="flex justify-between mb-2">
-                    <span>Qubit {i}</span>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg">Qubit {i}</span>
                     <button
                       onClick={() => measureQubit(i)}
                       disabled={isProcessing}
-                      className={`px-2 py-1 rounded transition-colors ${
+                      className={`px-3 py-1.5 rounded transition-colors ${
                         isProcessing 
                           ? 'bg-gray-600 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700'
+                          : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
                       }`}
                     >
-                      Measure
+                      {isProcessing ? 'Measuring...' : 'Measure'}
                     </button>
                   </div>
-                  <div className="text-xl">
-                    {results[i] !== undefined 
-                      ? `|${results[i]}⟩ (${(results[i] * 100).toFixed(2)}%)`
-                      : 'Not measured'
-                    }
+                  <div className="text-lg font-mono">
+                    {results[i] !== undefined ? (
+                      <div className="space-y-1">
+                        <div>State: |{results[i]}⟩</div>
+                        <div className="text-sm text-green-400">
+                          Probability: {(results[i] * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-400 italic">Not measured</div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Add the histogram component */}
+          <ProbabilityHistogram probabilities={results} />
+        </div>
+      </div>
+
+      {/* Add this section after the circuit visualization */}
+      <div className="bg-gray-800 p-6 rounded-lg mt-8">
+        <h2 className="text-2xl mb-4">Export Circuit</h2>
+        <div className="flex justify-end">
+          <button
+            onClick={handleExport}
+            disabled={operations.length === 0}
+            className={`px-4 py-2 rounded ${
+              operations.length === 0
+                ? 'bg-gray-600 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            Export to QASM
+          </button>
         </div>
       </div>
     </div>
