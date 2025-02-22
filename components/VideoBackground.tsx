@@ -8,7 +8,7 @@ const VideoBackground = () => {
         playsInline
         className="absolute w-full h-full object-cover opacity-70"
       >
-        <source src="/quantum-bg.mp4" type="video/mp4" />
+        <source src="/quantum-bg3.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
     </div>
