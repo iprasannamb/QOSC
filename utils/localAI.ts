@@ -28,8 +28,12 @@ const responses: { [key: string]: Response } = {
 
 export function generateResponse(input: string): string {
   const lowercaseInput = input.toLowerCase();
+<<<<<<< HEAD
   
   // Find matching response based on keywords
+=======
+
+>>>>>>> 57a263e8ad3c3bc29308e3767c3878f1986c08bf
   for (const [_, response] of Object.entries(responses)) {
     if (response.keywords.some(keyword => lowercaseInput.includes(keyword))) {
       return response.text;
@@ -37,4 +41,8 @@ export function generateResponse(input: string): string {
   }
   
   return responses.default.text;
+<<<<<<< HEAD
 } 
+=======
+} 
+>>>>>>> 57a263e8ad3c3bc29308e3767c3878f1986c08bf
