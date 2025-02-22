@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Xrepo 
 A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
 
@@ -17,3 +18,6 @@ cd QOSC
 ## License
 
 Apache 2.0
+=======
+# qoss
+>>>>>>> 1dbf79014c6478e0e152e56fd7ecb41386ae707a
