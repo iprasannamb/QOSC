@@ -94,31 +94,15 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
               Quick Links
             </h3>
-            <Link 
-              href="/documentation" 
-              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
-            >
-              Documentation
-            </Link>
-            <Link 
-              href="/tutorials" 
-              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
-            >
-              Tutorials
-            </Link>
-            <Link 
-              href="/community" 
-              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
-            >
-              Community Forum
-            </Link>
+           
+            
           </div>
 
           {/* Footer */}
           <div className="absolute bottom-8 left-8 right-8">
             <div className="text-sm text-gray-400 text-center">
-              <p>XREPO v1.0.0</p>
-              <p className="mt-1">Quantum Collaboration Platform</p>
+              
+             
             </div>
           </div>
         </div>

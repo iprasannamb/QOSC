@@ -147,49 +147,6 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* Community Section */}
-              <section id="community" className="min-h-screen bg-black/30 p-16">
-                <div className="max-w-6xl mx-auto">
-                  <h2 className="text-4xl font-bold text-white mb-8">Join Our Community</h2>
-                  <Separator className="my-8" />
-                  <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <CardSpotlight color="rgba(255, 255, 255, 0.1)">
-                      <CardHeader>
-                        <CardTitle className="text-white">Community Benefits</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="text-gray-300 space-y-4">
-                          <li>✓ Collaborate on cutting-edge quantum projects</li>
-                          <li>✓ Share knowledge and experiences</li>
-                          <li>✓ Participate in community discussions</li>
-                          <li>✓ Access exclusive resources and tools</li>
-                        </ul>
-                      </CardContent>
-                    </CardSpotlight>
-
-                    <CardSpotlight color="rgba(255, 255, 255, 0.1)">
-                      <CardHeader>
-                        <CardTitle className="text-white">Get Started Today</CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Join our growing community
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-gray-300">
-                          Join our growing community and contribute to the future of quantum computing.
-                        </p>
-                        <Button 
-                          onClick={() => router.push('/signup')}
-                          className="w-full bg-purple-600 hover:bg-purple-700"
-                        >
-                          Join Community
-                        </Button>
-                      </CardContent>
-                    </CardSpotlight>
-                  </div>
-                </div>
-              </section>
-
               {/* Footer */}
               <footer className="bg-black/50 text-gray-300 p-8">
                 <div className="max-w-6xl mx-auto text-center">

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Repository() {
   return (
@@ -23,10 +24,22 @@ export default function Repository() {
       <div className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-semibold mb-4">Available Algorithms</h2>
         <ul className="space-y-4">
-          <AlgorithmItem name="Quantum Fourier Transform" />
-          <AlgorithmItem name="Grover's Search Algorithm" />
-          <AlgorithmItem name="Shor's Factoring Algorithm" />
-          <AlgorithmItem name="Variational Quantum Eigensolver (VQE)" />
+          <AlgorithmItem 
+            name="Quantum Fourier Transform" 
+            href="/algorithms/quantum-fourier-transform"
+          />
+          <AlgorithmItem 
+            name="Grover's Search Algorithm" 
+            href="/algorithms/grovers-search"
+          />
+          <AlgorithmItem 
+            name="Shor's Factoring Algorithm" 
+            href="/algorithms/shors-algorithm"
+          />
+          <AlgorithmItem 
+            name="Variational Quantum Eigensolver (VQE)" 
+            href="/algorithms/vqe"
+          />
         </ul>
       </div>
 
@@ -40,13 +53,17 @@ export default function Repository() {
   );
 }
 
-function AlgorithmItem({ name }: { name: string }) {
+function AlgorithmItem({ name, href }: { name: string; href: string }) {
+  const router = useRouter();
+  
   return (
     <li className="bg-gray-800 p-4 rounded-lg shadow-md flex justify-between">
       <span>{name}</span>
-      <button className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
-        View
-      </button>
+      <Link href={href}>
+        <button className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+          View
+        </button>
+      </Link>
     </li>
   );
 }

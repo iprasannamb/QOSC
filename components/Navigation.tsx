@@ -123,14 +123,7 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
             >
               Features
             </button>
-            <button 
-              onClick={() => scrollToSection('community')}
-              className={`text-lg transition-colors ${
-                isLoggedIn ? 'hover:text-purple-400' : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              Community
-            </button>
+           
             
             {/* Auth buttons */}
             {isLoggedIn ? (
