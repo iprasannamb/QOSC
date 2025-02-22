@@ -19,7 +19,6 @@ export async function sendMessage(message: string) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to get response');
     }
-
     const data = await response.json();
     return data.response;
   } catch (error) {
