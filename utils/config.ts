@@ -3,4 +3,4 @@ export const AI_CONFIG = {
   model: 'mistral',                   // Using Mistral model
   maxTokens: 150,
   temperature: 0.7,
-}; 
+};
