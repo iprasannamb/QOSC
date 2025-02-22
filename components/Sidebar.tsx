@@ -20,16 +20,16 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       {/* Sidebar */}
       <div 
         className={`fixed left-0 top-0 h-full w-72 bg-gray-900/95 backdrop-blur-sm text-white 
-          p-8 pt-24 transform transition-all duration-300 ease-in-out shadow-2xl z-40 
+          p-8 transform transition-all duration-300 ease-in-out shadow-2xl z-40 
           border-r border-gray-800 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Repository Section */}
           <Link 
-            href="/repository" 
-            className={`block group`}
+            href="/Repository" 
+            className="block group"
           >
             <div className={`p-4 rounded-xl transition-all duration-200 
               ${router.pathname === '/repository' 
@@ -37,10 +37,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                 : 'hover:bg-gray-800/50'
               } border border-transparent hover:border-gray-700`}
             >
-              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors">
+              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors mb-2">
                 Repository
               </div>
-              <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300 transition-colors">
+              <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
                 Quantum Algorithm Collection
               </div>
             </div>
@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           {/* Playground Section */}
           <Link 
             href="/playground" 
-            className={`block group`}
+            className="block group"
           >
             <div className={`p-4 rounded-xl transition-all duration-200 
               ${router.pathname === '/playground' 
@@ -57,10 +57,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                 : 'hover:bg-gray-800/50'
               } border border-transparent hover:border-gray-700`}
             >
-              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors">
+              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors mb-2">
                 Playground
               </div>
-              <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300 transition-colors">
+              <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
                 Circuit Design & Simulation
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           {/* Knowledge Section */}
           <Link 
             href="/knowledge" 
-            className={`block group`}
+            className="block group"
           >
             <div className={`p-4 rounded-xl transition-all duration-200 
               ${router.pathname === '/knowledge' 
@@ -77,38 +77,38 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                 : 'hover:bg-gray-800/50'
               } border border-transparent hover:border-gray-700`}
             >
-              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors">
+              <div className="text-xl font-medium group-hover:text-purple-400 transition-colors mb-2">
                 Knowledge
               </div>
-              <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300 transition-colors">
+              <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
                 Community Resources
               </div>
             </div>
           </Link>
 
           {/* Divider */}
-          <div className="border-t border-gray-800 my-6" />
+          <div className="border-t border-gray-800 my-5" />
 
           {/* Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
               Quick Links
             </h3>
             <Link 
               href="/documentation" 
-              className="block px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors"
+              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
             >
               Documentation
             </Link>
             <Link 
               href="/tutorials" 
-              className="block px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors"
+              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
             >
               Tutorials
             </Link>
             <Link 
               href="/community" 
-              className="block px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors"
+              className="block px-4 py-3 text-gray-300 hover:text-purple-400 transition-colors"
             >
               Community Forum
             </Link>
