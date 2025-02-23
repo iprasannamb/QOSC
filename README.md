@@ -1,4 +1,7 @@
-# Xrepo 
+# Xrepo
+
+Do check out Demo video ('https://youtu.be/zCZamyl_p6c')
+
 A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
 
 ## 🚀 Overview
