@@ -18,6 +18,7 @@ interface Post {
   isUpvoted: boolean;
   isDownvoted: boolean;
   isExpanded?: boolean;
+  postComments: string[];
 }
 
 interface Message {
@@ -43,7 +44,8 @@ export default function Knowledge() {
       timestamp: "3h ago",
       tags: ["quantum-gates", "basics", "tutorial"],
       isUpvoted: false,
-      isDownvoted: false
+      isDownvoted: false,
+      postComments: []
     }
   ]);
 
@@ -110,7 +112,8 @@ export default function Knowledge() {
       timestamp: "Just now",
       tags: newPost.tags.split(',').map(tag => tag.trim()),
       isUpvoted: false,
-      isDownvoted: false
+      isDownvoted: false,
+      postComments: []
     };
     setPosts([newPostObj, ...posts]);
     setNewPost({ title: '', content: '', tags: '' });
@@ -167,6 +170,21 @@ export default function Knowledge() {
 
   const handleProfileClick = () => {
     router.push('/profile');
+  };
+
+  // Function to handle adding comments to a post
+  const handleAddComment = (postId: number, comment: string) => {
+    if (!comment.trim()) return;
+
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          postComments: [...post.postComments, comment]
+        };
+      }
+      return post;
+    }));
   };
 
   return (
@@ -414,25 +432,37 @@ export default function Knowledge() {
                           type="text"
                           placeholder="Add a comment..."
                           className="flex-1 bg-gray-700/50 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddComment(post.id, e.currentTarget.value);
+                              e.currentTarget.value = ''; // Clear input after submission
+                            }
+                          }}
                         />
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors">
+                        <button 
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
+                          onClick={() => {
+                            const input = document.querySelector(`input[placeholder="Add a comment..."]`) as HTMLInputElement;
+                            handleAddComment(post.id, input.value);
+                            input.value = ''; // Clear input after submission
+                          }}
+                        >
                           Comment
                         </button>
                       </div>
                       
-                      {/* Sample Comments */}
+                      {/* Display Comments */}
                       <div className="space-y-3">
-                        <div className="bg-gray-700/30 rounded-md p-3">
-                          <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
-                            <span className="font-medium">username</span>
-                            <span>•</span>
-                            <span>2h ago</span>
+                        {post.postComments.map((comment, index) => (
+                          <div key={index} className="bg-gray-700/30 rounded-md p-3">
+                            <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                              <span className="font-medium">Current User</span>
+                              <span className="mx-1">•</span>
+                              <span>{new Date().toLocaleTimeString()}</span>
+                            </div>
+                            <p className="text-sm text-gray-300">{comment}</p>
                           </div>
-                          <p className="text-sm text-gray-300">
-                            This is a great explanation of quantum gates!
-                          </p>
-                        </div>
-                        {/* Add more sample comments as needed */}
+                        ))}
                       </div>
                     </div>
                   </div>

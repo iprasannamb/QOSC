@@ -3,44 +3,23 @@ import { QuantumSimulator } from '../lib/quantum/simulator';
 import { QuantumGates, ControlledGates, GateType, ControlledGateType } from '../lib/quantum/gates';
 import { QuantumCircuit, Operation } from '../components/QuantumCircuit';
 import { toast } from 'react-hot-toast';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import Histogram from '../components/Histogram';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-// Add new function to convert circuit to QASM format
+// Helper function for QASM export
 const circuitToQASM = (operations: Operation[], numQubits: number): string => {
-  let qasmCode = 'OPENQASM 2.0;\ninclude "qelib1.inc";\n\n';
-  qasmCode += `qreg q[${numQubits}];\n`;
-  qasmCode += `creg c[${numQubits}];\n\n`;
+  let qasm = 'OPENQASM 2.0;\ninclude "qelib1.inc";\n\n';
+  qasm += `qreg q[${numQubits}];\n`;
+  qasm += `creg c[${numQubits}];\n\n`;
 
   operations.forEach(op => {
     if (op.control !== undefined) {
-      qasmCode += `c${op.gate.toLowerCase()} q[${op.control}], q[${op.target}];\n`;
+      qasm += `c${op.gate.toLowerCase()} q[${op.control}], q[${op.target}];\n`;
     } else {
-      qasmCode += `${op.gate.toLowerCase()} q[${op.target}];\n`;
+      qasm += `${op.gate.toLowerCase()} q[${op.target}];\n`;
     }
   });
 
-  return qasmCode;
+  return qasm;
 };
 
 export default function QuantumPlayground() {
@@ -54,6 +33,7 @@ export default function QuantumPlayground() {
   const [results, setResults] = useState<{ [key: number]: number }>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [measurementResults, setMeasurementResults] = useState<{ [key: string]: number }>({});
 
   // Initialize simulator
   useEffect(() => {
@@ -139,21 +119,15 @@ export default function QuantumPlayground() {
 
     try {
       const { result, probability } = simulator.measure(qubit);
-      
-      // Update both the measurement results and probabilities
-      const probabilities = simulator.getProbabilities();
-      setResults(Object.fromEntries(
-        probabilities.map((prob, i) => [i, prob])
-      ));
-
-      // Show a more detailed toast message
-      toast.success(
-        <div>
-          <div>Qubit {qubit} measured to |{result}⟩</div>
-          <div className="text-sm">Probability: {(probability * 100).toFixed(2)}%</div>
-        </div>,
-        { duration: 3000 }
-      );
+      setResults(prev => ({
+        ...prev,
+        [qubit]: result
+      }));
+      setMeasurementResults(prev => ({
+        ...prev,
+        [`q${qubit}`]: (prev[`q${qubit}`] || 0) + 1
+      }));
+      toast.success(`Measurement result: |${result}⟩ with probability ${(probability * 100).toFixed(2)}%`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to measure qubit';
       setError(message);
@@ -176,79 +150,12 @@ export default function QuantumPlayground() {
     setSimulator(new QuantumSimulator(numQubits));
     setOperations([]);
     setResults({});
+    setMeasurementResults({});
     setError(null);
     toast.success('Circuit reset');
   }, [numQubits]);
 
-  // Replace the ProbabilityHistogram component with this typed version
-  const ProbabilityHistogram = ({ probabilities }: { probabilities: { [key: number]: number } }) => {
-    const options: ChartOptions<'bar'> = {
-      responsive: true,
-      animation: {
-        duration: 500
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 1,
-          ticks: {
-            callback: function(value) {
-              return `${(Number(value) * 100).toFixed(0)}%`;
-            },
-            color: 'white'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
-        x: {
-          ticks: {
-            color: 'white'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `Probability: ${(context.parsed.y * 100).toFixed(2)}%`;
-            }
-          }
-        }
-      }
-    };
-
-    const data: ChartData<'bar'> = {
-      labels: Object.keys(probabilities).map(state => `|${state}⟩`),
-      datasets: [
-        {
-          data: Object.values(probabilities),
-          backgroundColor: 'rgba(53, 162, 235, 0.8)',
-          borderColor: 'rgba(53, 162, 235, 1)',
-          borderWidth: 1,
-          borderRadius: 5,
-          hoverBackgroundColor: 'rgba(53, 162, 235, 1)',
-        }
-      ]
-    };
-
-    return (
-      <div className="mt-8">
-        <h3 className="text-xl mb-4">Histogram of Probabilities</h3>
-        <div className="bg-gray-900 p-4 rounded-lg">
-          <Bar options={options} data={data} height={200} />
-        </div>
-      </div>
-    );
-  };
-
-  // Add function to handle QASM export
+  // Export circuit to QASM
   const handleExport = useCallback(() => {
     try {
       const qasmCode = circuitToQASM(operations, numQubits);
@@ -270,7 +177,9 @@ export default function QuantumPlayground() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">Quantum Circuit Playground</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Quantum Circuit Playground</h1>
+      </div>
 
       {error && (
         <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 mb-8">
@@ -312,9 +221,7 @@ export default function QuantumPlayground() {
                   <button
                     key={gate}
                     onClick={() => setSelectedGate(gate as GateType)}
-                    className={`p-2 rounded ${
-                      selectedGate === gate ? 'bg-blue-600' : 'bg-gray-700'
-                    }`}
+                    className={`p-2 rounded ${selectedGate === gate ? 'bg-blue-600' : 'bg-gray-700'}`}
                   >
                     {gate}
                   </button>
@@ -323,9 +230,7 @@ export default function QuantumPlayground() {
                   <button
                     key={gate}
                     onClick={() => setSelectedGate(gate as ControlledGateType)}
-                    className={`p-2 rounded ${
-                      selectedGate === gate ? 'bg-purple-600' : 'bg-gray-700'
-                    }`}
+                    className={`p-2 rounded ${selectedGate === gate ? 'bg-purple-600' : 'bg-gray-700'}`}
                   >
                     {gate}
                   </button>
@@ -340,9 +245,7 @@ export default function QuantumPlayground() {
                   <button
                     key={i}
                     onClick={() => setSelectedQubit(i)}
-                    className={`p-2 rounded ${
-                      selectedQubit === i ? 'bg-green-600' : 'bg-gray-700'
-                    }`}
+                    className={`p-2 rounded ${selectedQubit === i ? 'bg-green-600' : 'bg-gray-700'}`}
                   >
                     q{i}
                   </button>
@@ -359,9 +262,7 @@ export default function QuantumPlayground() {
                       <button
                         key={i}
                         onClick={() => setControlQubit(i)}
-                        className={`p-2 rounded ${
-                          controlQubit === i ? 'bg-purple-600' : 'bg-gray-700'
-                        }`}
+                        className={`p-2 rounded ${controlQubit === i ? 'bg-purple-600' : 'bg-gray-700'}`}
                       >
                         q{i}
                       </button>
@@ -374,11 +275,7 @@ export default function QuantumPlayground() {
             <button
               onClick={applyGate}
               disabled={isProcessing}
-              className={`w-full p-3 rounded-lg transition-colors ${
-                isProcessing 
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              className={`w-full p-3 rounded-lg transition-colors ${isProcessing ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
               {isProcessing ? 'Processing...' : 'Add Gate'}
             </button>
@@ -402,59 +299,49 @@ export default function QuantumPlayground() {
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: numQubits }).map((_, i) => (
                 <div key={i} className="bg-gray-700 p-4 rounded">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg">Qubit {i}</span>
+                  <div className="flex justify-between mb-2">
+                    <span>Qubit {i}</span>
                     <button
                       onClick={() => measureQubit(i)}
                       disabled={isProcessing}
-                      className={`px-3 py-1.5 rounded transition-colors ${
-                        isProcessing 
-                          ? 'bg-gray-600 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
-                      }`}
+                      className={`px-2 py-1 rounded transition-colors ${isProcessing ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                     >
-                      {isProcessing ? 'Measuring...' : 'Measure'}
+                      Measure
                     </button>
                   </div>
-                  <div className="text-lg font-mono">
-                    {results[i] !== undefined ? (
-                      <div className="space-y-1">
-                        <div>State: |{results[i]}⟩</div>
-                        <div className="text-sm text-green-400">
-                          Probability: {(results[i] * 100).toFixed(2)}%
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-gray-400 italic">Not measured</div>
-                    )}
+                  <div className="text-xl">
+                    {results[i] !== undefined 
+                      ? `|${results[i]}⟩ (${(results[i] * 100).toFixed(2)}%)`
+                      : 'Not measured'
+                    }
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Add the histogram component */}
-          <ProbabilityHistogram probabilities={results} />
+          {/* Histogram Display */}
+          <Histogram results={measurementResults} />
         </div>
-      </div>
 
-      {/* Add this section after the circuit visualization */}
-      <div className="bg-gray-800 p-6 rounded-lg mt-8">
-        <h2 className="text-2xl mb-4">Export Circuit</h2>
-        <div className="flex justify-end">
-          <button
-            onClick={handleExport}
-            disabled={operations.length === 0}
-            className={`px-4 py-2 rounded ${
-              operations.length === 0
-                ? 'bg-gray-600 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            Export to QASM
-          </button>
+        {/* Export section */}
+        <div className="bg-gray-800 p-6 rounded-lg mt-8">
+          <h2 className="text-2xl mb-4">Export Circuit</h2>
+          <div className="flex justify-end">
+            <button
+              onClick={handleExport}
+              disabled={operations.length === 0}
+              className={`px-4 py-2 rounded ${
+                operations.length === 0
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              Export to QASM
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-} 
+}
