@@ -238,23 +238,27 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check passwords match before setting loading state
+    if (signupCredentials.password !== signupCredentials.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      if (signupCredentials.password !== signupCredentials.confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
-
-      // Simulate signup
+      // Simulate signup - only proceed if we have valid credentials
       if (signupCredentials.email && signupCredentials.password) {
         localStorage.setItem('isLoggedIn', 'true');
         setIsLoggedIn(true);
         setShowSignupCard(false);
         setSignupCredentials({ email: '', password: '', confirmPassword: '' });
+        toast.success('Account created successfully!');
       }
     } catch (error) {
       console.error('Signup error:', error);
-      toast.error(error instanceof Error ? error.message : 'Signup failed');
+      toast.error('Signup failed');
     } finally {
       setIsLoading(false);
     }
@@ -321,7 +325,7 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
               <div className="flex items-center space-x-4">
                 {!isProfilePage && (
                   <Link 
-                    href="/profile" 
+                    href="./profile" 
                     className="text-lg relative group"
                   >
                     <span className="relative z-10 hover:text-purple-400 transition-colors duration-300">Profile</span>
