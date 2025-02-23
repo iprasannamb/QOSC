@@ -1,47 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 # Xrepo 
 A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
-
-## Features
-
-- **Quantum Algorithm Repository**: Version control optimized for quantum properties
-- **Circuit Playground**: Web-based collaborative quantum circuit designer
-- **Knowledge Sharing**: Community-driven learning and documentation
-
-## Quick Start
-
-```bash
-git clone https://github.com/prax-js/QOSC
-cd QOSC
-```
-
-## License
-
-Apache 2.0
-=======
-# qoss
->>>>>>> 1dbf79014c6478e0e152e56fd7ecb41386ae707a
-=======
-Xrepo: A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
-
-Xrepo is a groundbreaking project designed to accelerate the development and adoption of quantum computing by fostering a collaborative, open-source ecosystem. Addressing the unique challenges of quantum software development, Xrepo provides a comprehensive platform for researchers, developers, and enthusiasts to collectively explore and build quantum algorithms and applications.
-
-Key Features:
-
-Quantum Algorithm Repository: A specialized, GitHub-like repository tailored for quantum algorithms, featuring version control that understands superposition and entanglement.
-
-Quantum Circuit Playground: A web-based, collaborative quantum circuit designer that integrates with leading quantum computing framework (Qiskit), enabling real-time experimentation and simulation of small circuits directly in the browser.
-
-Knowledge Sharing System: A community-driven wiki linked directly to code, promoting shared learning, algorithm evaluation through community voting, and a reputation system that rewards valuable contributions.
-
-Unique Value:
-
-Xrepo distinguishes itself by:
-
-Addressing the specialized needs of quantum dev# 🌟 Xrepo: Quantum Open Source Collaboration Platform
-
----
 
 ## 🚀 Overview
 
@@ -50,14 +8,12 @@ Xrepo is a groundbreaking project revolutionizing quantum computing development 
 ## ✨ Key Features
 
 ### 🔄 Quantum Algorithm Repository
-- Specialized GitHub-like repository tailored for quantum algorithms
-- Advanced version control system understanding superposition and entanglement
+- Specialized repository tailored for quantum algorithms
 - Comprehensive documentation and code review systems
 
 ### 🎮 Quantum Circuit Playground
 - Web-based collaborative quantum circuit designer
 - Seamless integration with Qiskit framework
-- Real-time experimentation and simulation capabilities
 - Interactive browser-based circuit testing
 
 ### 📚 Knowledge Sharing System
@@ -89,4 +45,3 @@ Our platform aims to transform the quantum computing landscape by:
 Xrepo represents the future of quantum computing development - a future where innovation is collaborative, knowledge is shared, and breakthrough discoveries are made possible through community effort.
 
 ---
->>>>>>> 664288c610208e884ac5f4810e3c786051a1171a
