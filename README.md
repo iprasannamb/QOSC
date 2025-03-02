@@ -2,7 +2,7 @@
 
 Do check out Demo video ('https://youtu.be/X7EBrIbGSVw')
 
-A Open Source collaborative platform for developing, sharing, and improving quantum algorithms.
+A Open Source collaborative platform for developing, sharing, and improving quantum algorithms. 
 
 ## 🚀 Overview
 
