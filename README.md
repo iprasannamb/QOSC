@@ -6,7 +6,7 @@ A Open Source collaborative platform for developing, sharing, and improving quan
 
 ## 🚀 Overview
 
-Xrepo is a groundbreaking project revolutionizing quantum computing development through an innovative open-source ecosystem. By addressing the unique challenges of quantum software development, we're creating a comprehensive platform where researchers, developers, and enthusiasts can collectively explore and advance quantum algorithms and applications.
+Xrepo is a groundbreaking project revolutionizing quantum computing development through an innovative open-source ecosystem. By addressing the unique challenges of quantum software development, we're creating a comprehensive platform where researchers, developers, and enthusiasts can collectively explore and advance quantum algorithms and applications. 
 
 ## ✨ Key Features
 
