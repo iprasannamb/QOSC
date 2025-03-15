@@ -147,7 +147,7 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* Footer */}
+              
               <footer className="bg-black/50 text-gray-300 p-8">
                 <div className="max-w-6xl mx-auto text-center">
                   <p>© 2024 X-Repo. All rights reserved.</p>
