@@ -14,6 +14,8 @@ interface Comment {
   userVote?: 'up' | 'down' | null;
 }
 
+// Exported
+
 export default function ResourcePage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
