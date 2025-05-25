@@ -69,7 +69,7 @@ export default function Home() {
 
           <div className="bg-gray-900">
             {/* Protected Sections */}
-            <div className={`transition-opacity duration-300 ${isLoggedIn ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+            
               {/* About Section */}
               <section id="about" className="min-h-screen p-16">
                 <div className="max-w-6xl mx-auto">
@@ -154,7 +154,7 @@ export default function Home() {
                   <p className="mt-2">Advancing Quantum Computing Through Collaboration</p>
                 </div>
               </footer>
-            </div>
+            
           </div>
         </div>
       </div>

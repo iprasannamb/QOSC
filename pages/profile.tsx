@@ -1,55 +1,238 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { toast } from 'react-hot-toast';
 import Navigation from '../components/Navigation';
 import Sidebar from '../components/Sidebar';
-import { toast } from 'react-hot-toast';
+import ProfileHeader from '../components/profile/ProfileHeader';
+import ProfileInfo from '../components/profile/ProfileInfo';
+import ProfileSettings from '../components/profile/ProfileSettings';
+import ProfileEditModal from '../components/profile/ProfileEditModal';
+import BannerEditModal from '../components/profile/BannerEditModal';
+import PostsSection from '../components/profile/PostsSection';
 
 interface UserProfile {
+  id: string;
   name: string;
   email: string;
   bio: string;
+  profilePhoto: string;
+  bannerPhoto: string;
+  domain: string;
+  skills: string[];
   notifications: boolean;
   theme: 'light' | 'dark';
   language: string;
 }
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  timestamp: Date;
+  type: 'progress' | 'achievement' | 'certificate';
+}
+
+// Mock user data for demo purposes
+const MOCK_USER = {
+  id: 'user123',
+  name: 'Demo User',
+  email: 'demo@example.com',
+  photoURL: '/images/default-pp.jpg'
+};
+
+// Mock posts data
+const MOCK_POSTS: Post[] = [
+  {
+    id: 'post1',
+    title: 'My First Achievement',
+    content: 'Completed the first module of my course!',
+    imageUrl: 'https://via.placeholder.com/500?text=achievement',
+    timestamp: new Date(),
+    type: 'achievement'
+  },
+  {
+    id: 'post2',
+    title: 'Learning Progress',
+    content: 'Making good progress on my project',
+    timestamp: new Date(Date.now() - 86400000), // 1 day ago
+    type: 'progress'
+  }
+];
+
+// Add constants for default images
+const DEFAULT_BANNER = '/images/default-banner.jpg';
+const DEFAULT_PROFILE_PHOTO = '/images/default-pp.jpg';
 
 export default function Profile() {
   const router = useRouter();
   const [fadeIn, setFadeIn] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<typeof MOCK_USER | null>(null);
+  const [isEditingBanner, setIsEditingBanner] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [newPost, setNewPost] = useState({
+    title: '',
+    content: '',
+    type: 'progress' as const
+  });
+  const [postImage, setPostImage] = useState<File | null>(null);
+  const [isPostingOpen, setIsPostingOpen] = useState(false);
+  
   const [profile, setProfile] = useState<UserProfile>({
-    name: 'John Doe',
-    email: 'john@example.com',
-    bio: 'Quantum computing enthusiast',
+    id: '',
+    name: '',
+    email: '',
+    bio: '',
+    profilePhoto: '',
+    bannerPhoto: '',
+    domain: '',
+    skills: [],
     notifications: true,
     theme: 'dark',
     language: 'en'
   });
 
+  // Simulate authentication and profile loading
   useEffect(() => {
-    // Load saved profile from localStorage if it exists
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
+    // Simulate authentication check
+    const checkAuth = () => {
+      // For demo, we'll assume the user is logged in
+      setIsLoggedIn(true);
+      setCurrentUser(MOCK_USER);
+      
+      // Set up mock profile data
+      setProfile({
+        id: MOCK_USER.id,
+        name: MOCK_USER.name,
+        email: MOCK_USER.email,
+        bio: 'Software developer passionate about learning new technologies',
+        profilePhoto: MOCK_USER.photoURL,
+        bannerPhoto: DEFAULT_BANNER, // Use the default banner image
+        domain: 'Web Development',
+        skills: ['JavaScript', 'React', 'TypeScript', 'Node.js'],
+        notifications: true,
+        theme: 'dark',
+        language: 'en'
+      });
+      
+      // Load mock posts
+      setPosts(MOCK_POSTS);
+      
+      // Fade in the UI
+      setFadeIn(true);
+    };
     
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/login');
-      return;
-    }
-    setFadeIn(true);
+    // Simulate a delay for loading
+    const timer = setTimeout(() => {
+      checkAuth();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [router]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
   const handleToggleChange = (name: string) => {
     setProfile(prev => ({ ...prev, [name]: !prev[name as keyof UserProfile] }));
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill.trim() && !profile.skills.includes(newSkill.trim())) {
+      setProfile(prev => ({
+        ...prev,
+        skills: [...prev.skills, newSkill.trim()]
+      }));
+      setNewSkill('');
+    }
+  };
+
+  const handleRemoveSkill = (skill: string) => {
+    setProfile(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skill)
+    }));
+  };
+
+  // Simplified file handling with placeholder URLs
+  const handleFileUpload = async (file: File, type: 'profile' | 'banner' | 'post') => {
+    if (!file) return null;
+    
+    // For demo purposes, return a placeholder URL
+    return `https://via.placeholder.com/500?text=${type}_image`;
+  };
+
+  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Updating profile photo...');
+      
+      try {
+        // Use placeholder instead of actual upload
+        const photoUrl = await handleFileUpload(file, 'profile');
+        
+        if (photoUrl) {
+          setProfile(prev => ({ ...prev, profilePhoto: photoUrl }));
+          toast.success('Profile photo updated successfully');
+        } else {
+          // If upload fails, use the default profile photo
+          setProfile(prev => ({ ...prev, profilePhoto: DEFAULT_PROFILE_PHOTO }));
+          toast.error('Failed to upload image, using default profile photo');
+        }
+      } catch (error) {
+        console.error('Error updating profile photo:', error);
+        toast.error('Failed to update profile photo');
+        // Use default profile photo on error
+        setProfile(prev => ({ ...prev, profilePhoto: DEFAULT_PROFILE_PHOTO }));
+      } finally {
+        toast.dismiss(loadingToast);
+      }
+    }
+  };
+
+  const handleBannerPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Updating banner image...');
+      
+      try {
+        // Use placeholder instead of actual upload
+        const photoUrl = await handleFileUpload(file, 'banner');
+        
+        if (photoUrl) {
+          setProfile(prev => ({ ...prev, bannerPhoto: photoUrl }));
+          toast.success('Banner image updated successfully');
+        } else {
+          // If upload fails, use the default banner
+          setProfile(prev => ({ ...prev, bannerPhoto: DEFAULT_BANNER }));
+          toast.error('Failed to upload image, using default banner');
+        }
+      } catch (error) {
+        console.error('Error updating banner image:', error);
+        toast.error('Failed to update banner image');
+        // Use default banner on error
+        setProfile(prev => ({ ...prev, bannerPhoto: DEFAULT_BANNER }));
+      } finally {
+        toast.dismiss(loadingToast);
+      }
+    }
+  };
+
+  const handlePostImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPostImage(e.target.files[0]);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -69,13 +252,12 @@ export default function Profile() {
         return;
       }
 
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Save to localStorage
-      localStorage.setItem('userProfile', JSON.stringify(profile));
-
+      // In a real app, you would save to a database here
+      // For demo, we'll just update the state and show success
+      
       toast.success('Profile updated successfully!');
+      setIsEditingBanner(false);
+      setIsEditingProfile(false);
     } catch (error) {
       toast.error('Failed to update profile. Please try again.');
       console.error('Error saving profile:', error);
@@ -84,118 +266,167 @@ export default function Profile() {
     }
   };
 
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setIsSaving(true);
+      
+      if (!newPost.title.trim() || !newPost.content.trim()) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+      
+      let imageUrl = '';
+      if (postImage) {
+        // Show loading toast for image upload
+        const loadingToast = toast.loading('Processing post image...');
+        
+        try {
+          // Use placeholder instead of actual upload
+          imageUrl = await handleFileUpload(postImage, 'post') || '';
+          toast.dismiss(loadingToast);
+        } catch (error) {
+          toast.dismiss(loadingToast);
+          console.error('Error processing post image:', error);
+          toast.error('Failed to process post image, but continuing with post creation');
+        }
+      }
+      
+      // Create a new post with a unique ID
+      const newPostData: Post = {
+        id: `post${Date.now()}`, // Generate a unique ID
+        title: newPost.title,
+        content: newPost.content,
+        type: newPost.type,
+        imageUrl,
+        // Ensure timestamp is a standard JavaScript Date object
+        timestamp: new Date()
+      };
+      
+      // Add the new post to the state
+      setPosts(prev => [newPostData, ...prev]);
+      
+      // Reset form
+      setNewPost({
+        title: '',
+        content: '',
+        type: 'progress'
+      });
+      setPostImage(null);
+      setIsPostingOpen(false);
+      
+      toast.success('Post created successfully!');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast.error('Failed to create post');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      // Remove from state
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      
+      toast.success('Post deleted successfully');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error('Failed to delete post');
+    }
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!isLoggedIn && fadeIn) {
+      router.push('/login');
+    }
+  }, [isLoggedIn, fadeIn, router]);
+
   return (
-    <div className={`min-h-screen bg-gray-900 transition-opacity duration-1000 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-gray-900 text-white ${fadeIn ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
       <Navigation isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <Sidebar isOpen={isSidebarOpen} />
-      <div className={`max-w-4xl mx-auto p-8 pt-20 transition-all duration-300 ${
-        isSidebarOpen ? 'ml-64' : 'ml-0'
-      }`}>
-        <h1 className="text-4xl font-bold text-white mb-8">Profile & Settings</h1>
+      
+      <main className="container mx-auto px-4 py-8 mt-16">
+        <div className="mb-24">
+          <ProfileHeader 
+            name={profile.name}
+            profilePhoto={profile.profilePhoto}
+            bannerPhoto={profile.bannerPhoto}
+            onEditBanner={() => setIsEditingBanner(true)}
+            onEditProfile={() => setIsEditingProfile(true)}
+          />
+        </div>
         
-        <div className="space-y-6">
-          {/* Profile Section */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-white mb-4">User Profile</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={profile.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Bio</label>
-                <textarea
-                  name="bio"
-                  value={profile.bio}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2 h-24 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Settings Section */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-white mb-4">Settings</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-300">Enable Notifications</span>
-                <button
-                  onClick={() => handleToggleChange('notifications')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    profile.notifications ? 'bg-purple-600' : 'bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      profile.notifications ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Language</label>
-                <select
-                  name="language"
-                  value={profile.language}
-                  onChange={(e) => setProfile(prev => ({ ...prev, language: e.target.value }))}
-                  className="w-full bg-gray-700 text-white rounded-md px-4 py-2"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="fr">French</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Save and Logout Buttons */}
-          <div className="space-y-4">
-            <button
-              onClick={handleSaveProfile}
-              disabled={isSaving}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:bg-purple-400 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {isSaving ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left Column - Profile Info */}
+          <div className="md:col-span-1 space-y-6">
+            <ProfileInfo 
+              name={profile.name}
+              email={profile.email}
+              bio={profile.bio}
+              domain={profile.domain}
+              skills={profile.skills}
+              onEditProfile={() => setIsEditingProfile(true)}
+            />
             
-            <button
-              onClick={() => {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('userProfile');
-                router.push('/login');
-              }}
-              className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              Logout
-            </button>
+            <ProfileSettings 
+              notifications={profile.notifications}
+              language={profile.language}
+              onToggleChange={handleToggleChange}
+              onInputChange={handleInputChange}
+            />
+          </div>
+          
+          {/* Right Column - Posts */}
+          <div className="md:col-span-2">
+            <PostsSection 
+              posts={posts}
+              onDeletePost={handleDeletePost}
+              onCreatePost={handleCreatePost}
+              newPost={newPost}
+              setNewPost={setNewPost}
+              postImage={postImage}
+              onPostImageChange={handlePostImageChange}
+              isPostingOpen={isPostingOpen}
+              setIsPostingOpen={setIsPostingOpen}
+              isSaving={isSaving}
+            />
           </div>
         </div>
-      </div>
+      </main>
+      
+      {/* Modals */}
+      {isEditingProfile && (
+        <ProfileEditModal 
+          profile={profile}
+          onClose={() => setIsEditingProfile(false)}
+          onSave={handleSaveProfile}
+          onInputChange={handleInputChange}
+          onProfilePhotoChange={handleProfilePhotoChange}
+          onAddSkill={handleAddSkill}
+          onRemoveSkill={handleRemoveSkill}
+          newSkill={newSkill}
+          setNewSkill={setNewSkill}
+          isSaving={isSaving}
+        />
+      )}
+      
+      {isEditingBanner && (
+        <BannerEditModal 
+          bannerPhoto={profile.bannerPhoto}
+          onClose={() => setIsEditingBanner(false)}
+          onSave={handleSaveProfile}
+          onBannerPhotoChange={handleBannerPhotoChange}
+          isSaving={isSaving}
+        />
+      )}
     </div>
   );
-} 
+};

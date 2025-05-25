@@ -88,17 +88,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
 
           {/* Divider */}
           <div className="border-t border-gray-800 my-5" />
-
-          {/* Quick Links */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
-              Quick Links
-            </h3>
-           
-            
-          </div>
-
-          {/* Footer */}
+           {/* Footer */}
           <div className="absolute bottom-8 left-8 right-8">
             <div className="text-sm text-gray-400 text-center">
               
