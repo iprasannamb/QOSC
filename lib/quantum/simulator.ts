@@ -9,17 +9,21 @@ export type QuantumState = {
 };
 
 export class QuantumSimulator {
-  private state: QuantumState;
+  private state: Complex[];
+  private numQubits: number;
 
   constructor(numQubits: number) {
-    // Initialize state vector with 2^n amplitudes
-    const size = Math.pow(2, numQubits);
-    this.state = {
-      amplitudes: Array(size).fill({ real: 0, imag: 0 }),
-      numQubits
-    };
-    // Set initial state to |0...0⟩
-    this.state.amplitudes[0] = { real: 1, imag: 0 };
+    this.numQubits = numQubits;
+    const stateSize = Math.pow(2, numQubits);
+    this.state = new Array(stateSize).fill(null).map(() => ({ real: 0, imag: 0 }));
+    this.state[0] = { real: 1, imag: 0 }; // Initialize to |0...0⟩
+  }
+
+  // Clone method to create a deep copy of the simulator
+  public clone(): QuantumSimulator {
+    const newSimulator = new QuantumSimulator(this.numQubits);
+    newSimulator.state = this.state.map(complex => ({ real: complex.real, imag: complex.imag }));
+    return newSimulator;
   }
 
   // Complex number operations
@@ -39,57 +43,67 @@ export class QuantumSimulator {
 
   // Apply single-qubit gate
   applyGate(gate: Complex[][], targetQubit: number): void {
-    const n = this.state.numQubits;
-    const newAmplitudes = Array(this.state.amplitudes.length)
-      .fill({ real: 0, imag: 0 });
-
-    for (let i = 0; i < this.state.amplitudes.length; i++) {
+    const newState = new Array(this.state.length).fill(null).map(() => ({ real: 0, imag: 0 }));
+    
+    for (let i = 0; i < this.state.length; i++) {
       const bit = (i >> targetQubit) & 1;
-      const pair = i & ~(1 << targetQubit);
+      const pairIndex = i ^ (1 << targetQubit);
       
       if (bit === 0) {
-        newAmplitudes[i] = this.add(
-          this.multiply(gate[0][0], this.state.amplitudes[i]),
-          this.multiply(gate[0][1], this.state.amplitudes[i | (1 << targetQubit)])
+        // |0⟩ component
+        newState[i] = this.add(
+          this.multiply(gate[0][0], this.state[i]),
+          this.multiply(gate[0][1], this.state[pairIndex])
+        );
+        
+        // |1⟩ component
+        newState[pairIndex] = this.add(
+          this.multiply(gate[1][0], this.state[i]),
+          this.multiply(gate[1][1], this.state[pairIndex])
         );
       }
     }
-
-    this.state.amplitudes = newAmplitudes;
+    
+    this.state = newState;
   }
 
   // Apply controlled gate
-  applyControlledGate(
-    gate: Complex[][],
-    controlQubit: number,
-    targetQubit: number
-  ): void {
-    const newAmplitudes = [...this.state.amplitudes];
-
-    for (let i = 0; i < this.state.amplitudes.length; i++) {
+  applyControlledGate(gate: Complex[][], controlQubit: number, targetQubit: number): void {
+    const newState = new Array(this.state.length).fill(null).map((_, i) => ({ ...this.state[i] }));
+    
+    for (let i = 0; i < this.state.length; i++) {
+      // Only apply gate if control qubit is |1⟩
       if (((i >> controlQubit) & 1) === 1) {
         const bit = (i >> targetQubit) & 1;
-        const pair = i & ~(1 << targetQubit);
+        const pairIndex = i ^ (1 << targetQubit);
         
-        if (bit === 0) {
-          const j = i | (1 << targetQubit);
-          const temp = newAmplitudes[i];
-          newAmplitudes[i] = this.multiply(gate[0][0], this.state.amplitudes[i]);
-          newAmplitudes[j] = this.multiply(gate[1][0], temp);
-        }
+        // Store original values
+        const stateI = { ...newState[i] };
+        const statePair = { ...newState[pairIndex] };
+        
+        // Apply gate
+        newState[i] = this.add(
+          this.multiply(gate[0][0], stateI),
+          this.multiply(gate[0][1], statePair)
+        );
+        
+        newState[pairIndex] = this.add(
+          this.multiply(gate[1][0], stateI),
+          this.multiply(gate[1][1], statePair)
+        );
       }
     }
-
-    this.state.amplitudes = newAmplitudes;
+    
+    this.state = newState;
   }
 
   // Measure a specific qubit
   measure(qubit: number): { result: number; probability: number } {
     let prob0 = 0;
     
-    for (let i = 0; i < this.state.amplitudes.length; i++) {
+    for (let i = 0; i < this.state.length; i++) {
       if (((i >> qubit) & 1) === 0) {
-        const amp = this.state.amplitudes[i];
+        const amp = this.state[i];
         prob0 += amp.real * amp.real + amp.imag * amp.imag;
       }
     }
@@ -99,18 +113,20 @@ export class QuantumSimulator {
     const probability = result === 0 ? prob0 : 1 - prob0;
 
     // Collapse state
-    const newAmplitudes = Array(this.state.amplitudes.length)
-      .fill({ real: 0, imag: 0 });
+    const newState = new Array(this.state.length).fill(null).map(() => ({ real: 0, imag: 0 }));
+    let normFactor = 0;
     
-    for (let i = 0; i < this.state.amplitudes.length; i++) {
+    for (let i = 0; i < this.state.length; i++) {
       if (((i >> qubit) & 1) === result) {
-        newAmplitudes[i] = this.state.amplitudes[i];
+        newState[i] = { ...this.state[i] };
+        const amp = this.state[i];
+        normFactor += amp.real * amp.real + amp.imag * amp.imag;
       }
     }
 
     // Normalize
-    const norm = Math.sqrt(probability);
-    this.state.amplitudes = newAmplitudes.map(amp => ({
+    const norm = Math.sqrt(normFactor);
+    this.state = newState.map(amp => ({
       real: amp.real / norm,
       imag: amp.imag / norm
     }));
@@ -120,12 +136,12 @@ export class QuantumSimulator {
 
   // Get state vector
   getState(): Complex[] {
-    return [...this.state.amplitudes];
+    return this.state.map(amp => ({ ...amp }));
   }
 
   // Get qubit probabilities
   getProbabilities(): number[] {
-    return this.state.amplitudes.map(amp => 
+    return this.state.map(amp => 
       amp.real * amp.real + amp.imag * amp.imag
     );
   }

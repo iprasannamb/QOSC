@@ -18,6 +18,6 @@ export const initiateGoogleAuth = () => {
   authUrl.searchParams.append('response_type', response_type);
   authUrl.searchParams.append('prompt', 'select_account');
   
-  // Redirect to Google's OAuth page
+  // Instead of redirecting to a new tab, navigate in the same window
   window.location.href = authUrl.toString();
 };

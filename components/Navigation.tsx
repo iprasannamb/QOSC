@@ -1,12 +1,13 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from 'react-hot-toast';
 import { initiateGoogleAuth } from '@/utils/auth';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, logoutUser } from '@/utils/firebase';
 import { auth } from '@/utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import ProfileSetupDialog from './ProfileSetupDialog';
 
 interface NavigationProps {
   isOpen: boolean;
@@ -174,17 +175,33 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
     password: '', 
     confirmPassword: '' 
   });
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [newUserData, setNewUserData] = useState<any>(null);
 
   // Check if we're on the profile page
   const isProfilePage = router.pathname === '/profile';
 
+  // Redirect to knowledge page if logged in and on homepage
+  useEffect(() => {
+    if (isLoggedIn && router.pathname === '/') {
+      router.push('/knowledge');
+    }
+  }, [isLoggedIn, router.pathname, router]);
+
   const handleNavigation = (section: string) => {
-    if (isProfilePage) {
-      // If on profile page, redirect to main page with section hash
+    // Close any open cards
+    setShowLoginCard(false);
+    setShowSignupCard(false);
+    
+    // Navigate to the section without login check
+    if (router.pathname !== '/') {
       router.push(`/#${section}`);
     } else {
-      // Normal scroll behavior for main page
-      scrollToSection(section);
+      // If already on home page, scroll to section
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -192,10 +209,15 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
     // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
+      
+      // Redirect to knowledge if logged in and on homepage
+      if (user && router.pathname === '/') {
+        router.push('/knowledge');
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -220,6 +242,7 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
         setShowLoginCard(false);
         setCredentials({ email: '', password: '' });
         toast.success('Logged in successfully!');
+        router.push('/main');
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -253,11 +276,21 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
     
     try {
       if (signupCredentials.email && signupCredentials.password) {
-        await signUpWithEmail(signupCredentials.email, signupCredentials.password);
+        const userCredential = await signUpWithEmail(signupCredentials.email, signupCredentials.password);
         setIsLoggedIn(true);
         setShowSignupCard(false);
+        
+        // Store email to associate with profile later
+        setNewUserData({
+          email: signupCredentials.email,
+          uid: userCredential.user.uid
+        });
+        
+        // Reset credentials
         setSignupCredentials({ email: '', password: '', confirmPassword: '' });
-        toast.success('Account created successfully!');
+        
+        // Show profile setup dialog
+        setShowProfileSetup(true);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -270,11 +303,28 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      await signInWithGoogle();
+      
+      // Use Firebase's signInWithPopup instead of signInWithRedirect
+      // This will handle the OAuth flow in the same window
+      const result = await signInWithGoogle();
       setIsLoggedIn(true);
       setShowLoginCard(false);
       setShowSignupCard(false);
-      toast.success('Signed in with Google successfully!');
+      
+      // Check if this is a new user
+      if (result.user.metadata.creationTime === result.user.metadata.lastSignInTime) {
+        // New user - store data and show profile setup
+        setNewUserData({
+          email: result.user.email,
+          uid: result.user.uid,
+          displayName: result.user.displayName
+        });
+        setShowProfileSetup(true);
+      } else {
+        // Existing user - redirect to knowledge page
+        toast.success('Signed in with Google successfully!');
+        router.push('/knowledge');
+      }
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast.error(error.message || 'Failed to sign in with Google');
@@ -282,11 +332,33 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
       setIsLoading(false);
     }
   };
+  
+  const handleProfileSetupComplete = (profileData: any) => {
+    // Combine auth data with profile data
+    const completeUserData = {
+      ...profileData,
+      email: newUserData?.email,
+      uid: newUserData?.uid
+    };
+    
+    // Save profile data
+    localStorage.setItem('userProfile', JSON.stringify(completeUserData));
+    localStorage.setItem('profileSetupCompleted', 'true');
+    
+    // In a real app, you would save this to your database
+    console.log('Complete user profile:', completeUserData);
+    
+    // Show welcome message
+    toast.success(`Welcome to XREPO, ${profileData.firstName}!`);
+    
+    // Redirect to knowledge page
+    router.push('/knowledge');
+  };
 
   return (
     <>
       {/* Hamburger Button */}
-      <button
+      {/* <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 left-4 p-2 hover:bg-gray-800/50 rounded-lg transition-colors z-50"
         aria-label="Toggle Menu"
@@ -302,12 +374,12 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
             isOpen ? '-rotate-45 -translate-y-2' : ''
           }`}></span>
         </div>
-      </button>
+      </button> */}
 
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 bg-gray-900 text-white p-4 z-40 border-b border-gray-800">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4 ml-16">
+          <div className="flex items-center space-x-4">
             <Link href="/" className="text-2xl font-bold">
               XREPO
             </Link>
@@ -325,7 +397,7 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
 
             <button 
               onClick={() => handleNavigation('about')}
-              className={`text-lg relative group ${isLoggedIn ? '' : 'text-gray-400'}`}
+              className="text-lg relative group"
             >
               <span className="relative z-10 group-hover:text-purple-400 transition-colors duration-300">About</span>
               <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
@@ -333,47 +405,21 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
 
             <button 
               onClick={() => handleNavigation('features')}
-              className={`text-lg relative group ${isLoggedIn ? '' : 'text-gray-400'}`}
+              className="text-lg relative group"
             >
               <span className="relative z-10 group-hover:text-purple-400 transition-colors duration-300">Features</span>
               <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </button>
 
-            {/* Auth buttons */}
-            {isLoggedIn ? (
+            {/* Auth buttons - only show Get Started if not logged in */}
+            {!isLoggedIn && (
               <div className="flex items-center space-x-4">
-                {!isProfilePage && (
-                  <Link 
-                    href="./profile" 
-                    className="text-lg relative group"
-                  >
-                    <span className="relative z-10 hover:text-purple-400 transition-colors duration-300">Profile</span>
-                    <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                  </Link>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="px-6 py-2 rounded-lg bg-purple-600 relative overflow-hidden group"
-                >
-                  <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-x-full bg-purple-800 group-hover:translate-x-0"></span>
-                  <span className="relative group-hover:text-white transition-colors duration-300">Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowLoginCard(true)}
-                  className="px-6 py-2 rounded-lg bg-purple-600 relative overflow-hidden group"
-                >
-                  <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-x-full bg-purple-800 group-hover:translate-x-0"></span>
-                  <span className="relative group-hover:text-white transition-colors duration-300">Sign In</span>
-                </button>
                 <button
                   onClick={() => setShowSignupCard(true)}
-                  className="px-6 py-2 rounded-lg border border-purple-600 relative overflow-hidden group"
+                  className="px-6 py-2 rounded-lg bg-purple-600 relative overflow-hidden group"
                 >
-                  <span className="absolute inset-0 w-0 h-full transition-all duration-300 ease-out transform bg-purple-600/20 group-hover:w-full"></span>
-                  <span className="relative group-hover:text-white transition-colors duration-300">Sign Up</span>
+                  <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-x-full bg-purple-800 group-hover:translate-x-0"></span>
+                  <span className="relative group-hover:text-white transition-colors duration-300">Get Started</span>
                 </button>
               </div>
             )}
@@ -435,9 +481,15 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
                 </button>
                 <div className="text-center text-gray-400">
                   Don't have an account?{' '}
-                  <Link href="/signup" className="text-purple-400 hover:text-purple-300 transition-colors">
+                  <button 
+                    onClick={() => {
+                      setShowLoginCard(false);
+                      setShowSignupCard(true);
+                    }} 
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                  >
                     Sign Up
-                  </Link>
+                  </button>
                 </div>
               </form>
               <div className="relative my-4 flex items-center">
@@ -604,6 +656,13 @@ export default function Navigation({ isOpen, setIsOpen }: NavigationProps) {
           </Card>
         </div>
       )}
+
+      {/* Profile Setup Dialog */}
+      <ProfileSetupDialog 
+        open={showProfileSetup}
+        onOpenChange={setShowProfileSetup}
+        onComplete={handleProfileSetupComplete}
+      />
     </>
   );
 } 

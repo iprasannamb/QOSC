@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/utils/firebase';
+import { Section } from 'lucide-react';
+import { GlobeDemo } from '@/components/globe-demo';
 
 export default function Home() {
   const router = useRouter();
@@ -22,16 +26,51 @@ export default function Home() {
       setFadeIn(true);
     }, 100);
 
-    const loginStatus = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loginStatus);
+    // Check login status
+    const checkLoginStatus = async () => {
+      const loginStatus = localStorage.getItem('isLoggedIn') === 'true';
+      setIsLoggedIn(loginStatus);
+      
+      // If logged in, redirect to knowledge page instead of main
+      if (loginStatus) {
+        router.push('/knowledge');
+      }
+    };
+    
+    checkLoginStatus();
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const isLoggedIn = !!user;
+      setIsLoggedIn(isLoggedIn);
+      
+      // If logged in, redirect to knowledge page instead of main
+      if (isLoggedIn) {
+        router.push('/knowledge');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // If logged in, we'll redirect, but in case that hasn't happened yet, 
+  // show a loading state instead of the homepage content
+  if (isLoggedIn) {
+    return (
+      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Redirecting to dashboard...</div>
       </div>
     );
   }
@@ -103,9 +142,9 @@ export default function Home() {
                       <CardContent>
                         <ul className="text-gray-300 space-y-2">
                           <li>• Quantum Algorithm Repository</li>
-                          <li>• Real-time Collaboration Tools</li>
+                          
                           <li>• Circuit Design & Simulation</li>
-                          <li>• Version Control System</li>
+                          
                           <li>• Knowledge Sharing Platform</li>
                         </ul>
                       </CardContent>
@@ -115,7 +154,7 @@ export default function Home() {
               </section>
 
               {/* Features Section */}
-              <section id="features" className="min-h-screen p-16">
+              <section id="features" className="min-h-screen p-15 pb-8">
                 <div className="max-w-6xl mx-auto">
                   <h2 className="text-4xl font-bold text-white mb-8">Platform Features</h2>
                   <Separator className="my-8" />
@@ -146,6 +185,10 @@ export default function Home() {
                   </div>
                 </div>
               </section>
+
+            {/* <section id="globe" className="min-h-screen pt-8 p-16">
+              <GlobeDemo />
+            </section> */}
 
               
               <footer className="bg-black/50 text-gray-300 p-8">

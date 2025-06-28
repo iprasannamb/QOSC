@@ -1,6 +1,8 @@
 export const AI_CONFIG = {
-  baseUrl: 'http://localhost:11434',  // Ollama server port
-  model: 'mistral',                   // Using Mistral model
-  maxTokens: 150,
-  temperature: 0.7,
+  // OpenAI configuration
+  openai: {
+    model: 'gpt-4o-mini',              // Using GPT-4o-mini model
+    maxTokens: 500,
+    temperature: 0.7,
+  }
 };

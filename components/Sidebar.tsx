@@ -1,20 +1,23 @@
+import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 interface SidebarProps {
   isOpen: boolean;
+  setIsOpen?: (isOpen: boolean) => void;
 }
 
-export default function Sidebar({ isOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const router = useRouter();
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - clicking this will also close the sidebar */}
       <div 
         className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 z-30 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
+        onClick={() => setIsOpen && setIsOpen(false)}
       />
       
       {/* Sidebar */}

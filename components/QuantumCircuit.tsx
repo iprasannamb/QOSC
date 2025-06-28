@@ -17,11 +17,19 @@ interface Props {
 }
 
 export const QuantumCircuit: React.FC<Props> = ({ numQubits, operations, onGateClick }) => {
+  // Group operations by time step
+  const timeSteps = operations.reduce((acc, op) => {
+    const maxTime = Math.max(...operations.map(o => o.time), 0);
+    return Array.from({ length: maxTime + 1 }, (_, i) => 
+      operations.filter(op => op.time === i)
+    );
+  }, [] as Operation[][]);
+
   return (
-    <div className="quantum-circuit bg-[#1C1C1C] p-4 rounded-lg">
+    <div className="quantum-circuit bg-[#1C1C1C] p-4 rounded-lg overflow-x-auto">
       {/* Qubit labels */}
-      <div className="flex">
-        <div className="w-20 border-r border-gray-700">
+      <div className="flex min-w-[800px]">
+        <div className="w-16 border-r border-gray-700 flex-shrink-0">
           {Array.from({ length: numQubits }).map((_, i) => (
             <div key={i} className="h-12 flex items-center justify-center text-sm">
               q[{i}]
@@ -47,29 +55,14 @@ export const QuantumCircuit: React.FC<Props> = ({ numQubits, operations, onGateC
               key={idx}
               className="absolute"
               style={{
-                left: `${op.time * 48}px`,
-                top: `${op.target * 48}px`,
+                left: `${op.time * 60 + 12}px`,
+                top: `${op.target * 48 + 6}px`,
               }}
               onClick={() => onGateClick(op)}
             >
               <GateDisplay operation={op} />
             </div>
           ))}
-          
-          {/* Control lines */}
-          {operations
-            .filter(op => op.control !== undefined)
-            .map((op, idx) => (
-              <div
-                key={`ctrl-${idx}`}
-                className="absolute w-[2px] bg-black"
-                style={{
-                  left: `${op.time * 48 + 24}px`,
-                  top: `${Math.min(op.target, op.control!) * 48 + 24}px`,
-                  height: `${Math.abs(op.target - op.control!) * 48}px`
-                }}
-              />
-            ))}
         </div>
       </div>
     </div>
