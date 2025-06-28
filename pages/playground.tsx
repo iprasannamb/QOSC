@@ -335,7 +335,7 @@ export default function Playground() {
         setAiSuggestions(data.operations);
       } else {
         setAiSuggestions([]);
-        toast.warning('No valid circuit operations were generated');
+        // toast.warning('No valid circuit operations were generated');
       }
     } catch (error) {
       console.error('Error generating circuit:', error);
