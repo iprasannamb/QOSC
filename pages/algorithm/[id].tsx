@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { FiGitBranch, FiStar, FiGitCommit, FiArrowLeft } from 'react-icons/fi';
+import { FiGitBranch, FiStar, FiGitCommit } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
 interface Algorithm {
@@ -27,28 +26,33 @@ export default function AlgorithmDetail() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const fetchAlgorithm = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/algorithms/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch algorithm');
+        }
+        const data = await response.json();
+        console.log('Fetched algorithm:', data);
+        setAlgorithm(data);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error('Fetch error:', error);
+          toast.error(error.message || 'Failed to fetch algorithm details');
+        } else {
+          console.error('Fetch error:', error);
+          toast.error('Failed to fetch algorithm details');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (id) {
       fetchAlgorithm();
     }
   }, [id]);
-
-  const fetchAlgorithm = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/algorithms/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch algorithm');
-      }
-      const data = await response.json();
-      console.log('Fetched algorithm:', data);
-      setAlgorithm(data);
-    } catch (error: any) {
-      console.error('Fetch error:', error);
-      toast.error(error.message || 'Failed to fetch algorithm details');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (isLoading) {
     return <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black text-white p-8 flex items-center justify-center">
@@ -141,4 +145,4 @@ export default function AlgorithmDetail() {
       </div>
     </div>
   );
-} 
+}

@@ -45,9 +45,9 @@ export default function Repository() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/algorithms');
-      const data = await response.json();
+      const data: Algorithm[] = await response.json();
       setAlgorithms(data);
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Failed to fetch algorithms');
     } finally {
       setIsLoading(false);
@@ -110,7 +110,7 @@ export default function Repository() {
       setCode('');
       setQasmFile(null);
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
       if (error instanceof Error) {
         toast.error(error.message || 'Failed to upload algorithm');
