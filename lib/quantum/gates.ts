@@ -1,5 +1,3 @@
-import { Complex } from './simulator';
-
 export const QuantumGates = {
   // Pauli gates
   I: [
@@ -49,4 +47,4 @@ export const ControlledGates = {
   CT: 'T'
 }
 
-export type ControlledGateType = keyof typeof ControlledGates; 
+export type ControlledGateType = keyof typeof ControlledGates;

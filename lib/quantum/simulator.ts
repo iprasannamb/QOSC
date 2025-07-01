@@ -74,7 +74,6 @@ export class QuantumSimulator {
     for (let i = 0; i < this.state.length; i++) {
       // Only apply gate if control qubit is |1⟩
       if (((i >> controlQubit) & 1) === 1) {
-        const bit = (i >> targetQubit) & 1;
         const pairIndex = i ^ (1 << targetQubit);
         
         // Store original values
@@ -145,4 +144,4 @@ export class QuantumSimulator {
       amp.real * amp.real + amp.imag * amp.imag
     );
   }
-} 
+}

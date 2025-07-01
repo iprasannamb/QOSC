@@ -1,5 +1,4 @@
 import { Complex } from './simulator';
-import { PI } from './constants';
 
 export const AdvancedGates = {
   // Phase Gates
@@ -39,4 +38,4 @@ export const AdvancedGates = {
   ]
 } as const;
 
-export type AdvancedGateType = keyof typeof AdvancedGates; 
+export type AdvancedGateType = keyof typeof AdvancedGates;
